@@ -1,5 +1,7 @@
 # badapple-term
-Miniature self-contained badapple player running in cmd/terminal
+Miniature self-contained badapple player running in cmd/terminal.
+
+![showcase](./showcase.gif)
 
 ## Building
 Either:
