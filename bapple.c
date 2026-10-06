@@ -82,7 +82,7 @@ static inline void render_pixel(int row, int col, PixelColor color)
 
 bool setup_things(void)
 {
-	printf("\e[?1049h"); // Use alternate screen buffer
+	printf("\033[?1049h"); // Use alternate screen buffer
 #ifdef _WIN32
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (hOut == INVALID_HANDLE_VALUE)
@@ -101,8 +101,8 @@ bool setup_things(void)
 #endif
 
 	// Plat-independed options //
-	printf("\e[?25l"); // Hide the cursor
-	printf("\e[2J"); // Clear screen
+	printf("\033[?25l"); // Hide the cursor
+	printf("\033[2J"); // Clear screen
 
 	return true;
 
@@ -118,19 +118,19 @@ void restore_things(void)
 #ifdef _WIN32
 	timeEndPeriod(1/*ms, has to match timeBeginPeriod*/);
 #endif
-	printf("\e[?25h"); // Show the cursor
-	printf("\e[2J"); // Clear screen
+	printf("\033[?25h"); // Show the cursor
+	printf("\033[2J"); // Clear screen
 	move_cursor(0, 0);
-	printf("\e[?1049l"); // Return to the main screen buffer
+	printf("\033[?1049l"); // Return to the main screen buffer
 }
 
-static inline void clear_canvas(int rows, int cols)
+/* static inline void clear_canvas(int rows, int cols)
 {
 	assert(rows > 0 && cols > 0);
 	for (int r = 0; r < rows; r++)
 		for (int c = 0; c < cols; c++)
 			render_pixel(r, c, PIXEL_WHITE);
-}
+} */
 
 void time_sleep(unsigned int sleep_for)
 {
@@ -174,6 +174,7 @@ void play_video(SpriteMap data, int rate_per_second, bool loop_video)
 
 void sig_handler(int sig)
 {
+	(void)sig;
 	playing = false;
 }
 
