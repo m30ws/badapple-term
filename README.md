@@ -5,18 +5,19 @@ Miniature self-contained badapple player running in cmd/terminal.
 
 ## Building
 Either:
-- Ensure you have created and activated a virtual-env with PIL installed
-> `python -m venv venv/ && venv\Scripts\activate && pip install Pillow`
-- or ensure you have PIL installed in your global python environment.
-
-Then run `make compile_assets build` to do everything (or one of its specific recipes).
+- Ensure there is `ffmpeg`, `gcc` and `python` (with Pillow library) available on the path.
+	- one way of doing that is to create a virtual env and install Pillow:<br>
+	*Windows*: `python -m venv venv/ && venv\Scripts\activate && pip install Pillow`<br>
+	*Linux*: `python -m venv venv && . venv/bin/activate && pip install Pillow`
+- Run `make`.
+	- creates frames from the .mp4, packs them, and creates the C array for embedding (if chosen)
 
 ### Build steps in more detail
 
 #### Data
 To generate the data for embedding first run the `ffmpeg -i ./badapple.mp4 -r 30 -vf scale=16:-1 ./frames/output_%04d.png`.
 
-Then run `compile_map.py` (requires the Pillow library `pip install pillow`) and it will use those extracted frames to generate the `map.bin` file.
+Then run `compile_map.py` (requires the Pillow library `pip install Pillow`) and it will use those extracted frames to generate the `map.bin` file.
 
 To embed that data into the program you can either:
 
@@ -24,7 +25,7 @@ a) Compile the source using `-std=c23` standard and define `EMBED_USING_C23_EMBE
 
 b) Run the `bin_to_code.py` which will create a file with C array (`embed.c`) that will be included when compiling the main source.
 
-#### The video
+#### Video
 On Windows we only need to additionally link against `-lwinmm` (Windows Multimedia library) since we utilize `timeBeginPeriod` and `timeEndPeriod` functions for better `Sleep()` resolution.
 
 If you decided to use C23 `#embed` you will also have to add the `-std=c23` flag.
