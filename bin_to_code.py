@@ -8,14 +8,14 @@ VAR_NAME_LEN = None
 with open(INPUT_BIN, 'rb') as f:
 	data = f.read()
 
-with open(OUTPUT_C, 'w') as fp_out:
-	print(f'const uint8_t {VAR_NAME}[] = {{', end='', file=fp_out)
+with open(OUTPUT_C, 'wb') as fp_out:
+	fp_out.write(f'const uint8_t {VAR_NAME}[] = {{'.encode())
 	
 	for i, byt in enumerate(data):
 		if i % 16 == 0:
-			print('\n\t', end='', file=fp_out)
-		print(f'0x{byt:02x}, ', end='', file=fp_out)
-	print(f'\n}};', file=fp_out)
+			fp_out.write(f'\n\t'.encode())
+		fp_out.write(f'0x{byt:02x}, '.encode())
+	fp_out.write(f'\n}};'.encode())
 
 	# if (VAR_NAME_LEN):
-	# 	print(f'const size_t {VAR_NAME_LEN} = {len(data)};', file=fp_out)
+	# 	fp_out.write(f'const size_t {VAR_NAME_LEN} = {len(data)};'.encode())

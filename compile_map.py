@@ -8,8 +8,11 @@ FRAMES_DIR = './frames/'
 FRAME_FILES_FORMAT = f'output_*.png'
 FRAME_WIDTH, FRAME_HEIGHT = 16, 12
 
+DEBUG_SPRITE_MAP = True
+
 def export_bin(frames_glob, fp_out):
 	total_frames = len(frames_glob)
+	frames_glob.sort()
 
 	for idx, frame_file in enumerate(frames_glob):
 		with Image.open(frame_file) as opened:
@@ -64,3 +67,6 @@ if __name__ == '__main__':
 
 	with open(OUTPUT_DATA_FILE, "wb") as fp_out:
 		export_bin(frames_glob, fp_out)
+
+	if DEBUG_SPRITE_MAP:
+		output_sprite_map(frames_glob)
