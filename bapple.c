@@ -47,7 +47,7 @@ typedef struct {
 	int frame_width, frame_height;
 	size_t n_frames;
 	const uint8_t* data; // Each frame is `frame_width*frame_height` pixels, packed into bytes (so with 16x12 frame size each frame would be 24bytes of B/W pixels)
-} SpriteMap;
+} SpriteSequence;
 
 #if defined(EMBED_USING_C23_EMBED_KEYWORD) && EMBED_USING_C23_EMBED_KEYWORD == 1
 	static const uint8_t embedded_map[] = {
@@ -132,7 +132,7 @@ void restore_things(void)
 			render_pixel(r, c, PIXEL_WHITE);
 } */
 
-void time_sleep(unsigned int sleep_for)
+void time_sleep_ms(unsigned int sleep_for)
 {
 #ifdef _WIN32
 	SleepEx(sleep_for, true);
@@ -141,33 +141,33 @@ void time_sleep(unsigned int sleep_for)
 #endif
 }
 
-void play_video(SpriteMap data, int rate_per_second, bool loop_video)
+void render_frame(const SpriteSequence sprites, size_t frame_idx)
 {
-	if (data.frame_width < 1 || data.frame_height < 1 || data.n_frames < 1)
+	const size_t frame_bits = sprites.frame_width * sprites.frame_height;
+
+	for (size_t offset = 0; offset < frame_bits; offset++) {
+		size_t target_byte = frame_idx * frame_bits / 8 + offset / 8;
+		int rr = offset / sprites.frame_width;
+		int cc = offset % sprites.frame_width;
+
+		size_t mask = (size_t)1 << (sprites.frame_width - cc - 1); // [!!!] This too makes it so the max columns is sizeof(size_t)
+		if (cc < 8)
+			mask >>= 8;
+
+		render_pixel(rr, cc * W_SCALE + 1, (sprites.data[target_byte] & mask) ? PIXEL_BLACK : PIXEL_WHITE);
+	}
+}
+
+void play_video(const SpriteSequence sprites, int rate_per_second, bool loop_video)
+{
+	if (sprites.frame_width < 1 || sprites.frame_height < 1 || sprites.n_frames < 1)
 		return;
 
-	size_t frame_bits = data.frame_width * data.frame_height;
-	size_t frame_bytes = frame_bits / 8;
-
 	for (; playing; ) {
-
-		for (size_t fr = 0; fr < data.n_frames && playing; fr++) {
-			// clear_canvas(data.frame_height, data.frame_width);
-
-			for (size_t offset = 0; offset < frame_bits; offset++) {
-				size_t target_byte = fr * frame_bytes + offset / 8;
-				int rr = offset / data.frame_width;
-				int cc = offset % data.frame_width;
-				
-				size_t mask = (size_t)1 << (data.frame_width - cc - 1); // [!!!] This too makes it so the max columns is sizeof(size_t)
-				if (cc < 8)
-					mask >>= 8;
-
-				render_pixel(rr, cc * W_SCALE + 1, (data.data[target_byte] & mask) ? PIXEL_BLACK : PIXEL_WHITE);
-			}
-			time_sleep(1000 / rate_per_second);
+		for (size_t frame_idx = 0; frame_idx < sprites.n_frames && playing; frame_idx++) {
+			render_frame(sprites, frame_idx);
+			time_sleep_ms(1000 / rate_per_second);
 		}
-
 		if (!loop_video) break;
 	}
 }
@@ -186,14 +186,14 @@ int main(int argc, char** argv)
 	signal(SIGINT,  sig_handler);
 	signal(SIGTERM, sig_handler);
 
-	SpriteMap data = {
+	SpriteSequence sprites = {
 		.frame_width = FRAME_WIDTH,
 		.frame_height = FRAME_HEIGHT,
 		.n_frames = sizeof(embedded_map) / (FRAME_WIDTH*FRAME_HEIGHT/8),
 		.data = embedded_map,
 	};
 
-	play_video(data, RATE_PER_SECOND, LOOP_VIDEO);
+	play_video(sprites, RATE_PER_SECOND, LOOP_VIDEO);
 
 	restore_things();
 	printf("\nDone.\n");
